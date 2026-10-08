@@ -1,0 +1,230 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local function waitForGUI()
+	local start = os.clock()
+	while os.clock() - start < 12 do
+		local pg = LocalPlayer:FindFirstChildOfClass("PlayerGui")
+		if pg then
+			local g = pg:FindFirstChild("AutoPlayerStatus")
+			if g then return g end
+		end
+		task.wait(0.15)
+	end
+end
+
+local gui = waitForGUI()
+if not gui then return end
+
+local mainFrame = gui:FindFirstChildOfClass("Frame")
+if not mainFrame then return end
+
+local btn = Instance.new("TextButton")
+btn.Size = UDim2.new(0, 22, 0, 18)
+btn.Position = UDim2.new(1, -28, 0, 4)
+btn.BackgroundColor3 = Color3.fromRGB(40, 25, 60)
+btn.Text = "⚙"
+btn.TextColor3 = Color3.fromRGB(200, 160, 255)
+btn.Font = Enum.Font.GothamBold
+btn.TextSize = 12
+btn.Parent = mainFrame:FindFirstChildOfClass("Frame") or mainFrame
+
+local panel = Instance.new("Frame")
+panel.Size = UDim2.new(0, 280, 0, 320)
+panel.Position = UDim2.new(0.5, -140, 0.5, -160)
+panel.BackgroundColor3 = Color3.fromRGB(14, 14, 18)
+panel.Visible = false
+panel.ZIndex = 50
+panel.Parent = gui
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -20, 0, 28)
+title.Position = UDim2.new(0, 12, 0, 8)
+title.BackgroundTransparency = 1
+title.Text = "DELAY RANGES"
+title.TextColor3 = Color3.fromRGB(180, 100, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 14
+title.Parent = panel
+
+local close = Instance.new("TextButton")
+close.Size = UDim2.new(0, 24, 0, 24)
+close.Position = UDim2.new(1, -32, 0, 8)
+close.BackgroundColor3 = Color3.fromRGB(50, 25, 40)
+close.Text = "×"
+close.TextColor3 = Color3.fromRGB(255, 180, 180)
+close.Font = Enum.Font.GothamBold
+close.TextSize = 16
+close.Parent = panel
+
+local list = Instance.new("ScrollingFrame")
+list.Size = UDim2.new(1, -24, 0, 200)
+list.Position = UDim2.new(0, 12, 0, 44)
+list.BackgroundColor3 = Color3.fromRGB(20, 20, 26)
+list.ScrollBarThickness = 4
+list.Parent = panel
+
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0, 6)
+layout.Parent = list
+
+local total = Instance.new("TextLabel")
+total.Size = UDim2.new(1, -24, 0, 20)
+total.Position = UDim2.new(0, 12, 0, 252)
+total.BackgroundTransparency = 1
+total.Text = "Total: 100%"
+total.TextColor3 = Color3.fromRGB(140, 255, 160)
+total.Font = Enum.Font.Code
+total.TextSize = 12
+total.Parent = panel
+
+local add = Instance.new("TextButton")
+add.Size = UDim2.new(0.48, -6, 0, 26)
+add.Position = UDim2.new(0, 12, 0, 280)
+add.BackgroundColor3 = Color3.fromRGB(50, 30, 80)
+add.Text = "+ Add"
+add.TextColor3 = Color3.fromRGB(220, 180, 255)
+add.Font = Enum.Font.GothamBold
+add.TextSize = 12
+add.Parent = panel
+
+local apply = Instance.new("TextButton")
+apply.Size = UDim2.new(0.48, -6, 0, 26)
+apply.Position = UDim2.new(0.52, 0, 0, 280)
+apply.BackgroundColor3 = Color3.fromRGB(110, 50, 200)
+apply.Text = "Apply"
+apply.TextColor3 = Color3.fromRGB(255, 255, 255)
+apply.Font = Enum.Font.GothamBold
+apply.TextSize = 12
+apply.Parent = panel
+
+local rows = {}
+
+local function updateTotal()
+	local sum = 0
+	for _, r in ipairs(rows) do
+		sum = sum + (tonumber(r.pct.Text) or 0)
+	end
+	total.Text = "Total: " .. sum .. "%"
+	total.TextColor3 = sum == 100 and Color3.fromRGB(140, 255, 160) or Color3.fromRGB(255, 120, 120)
+	return sum
+end
+
+local function addRow(data)
+	data = data or {min = 0, max = 30, percent = 50}
+
+	local row = Instance.new("Frame")
+	row.Size = UDim2.new(1, -10, 0, 36)
+	row.BackgroundColor3 = Color3.fromRGB(28, 28, 36)
+	row.Parent = list
+
+	local minBox = Instance.new("TextBox")
+	minBox.Size = UDim2.new(0, 42, 0, 22)
+	minBox.Position = UDim2.new(0, 8, 0, 7)
+	minBox.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
+	minBox.Text = tostring(data.min)
+	minBox.TextColor3 = Color3.fromRGB(230, 230, 240)
+	minBox.Font = Enum.Font.Code
+	minBox.TextSize = 12
+	minBox.Parent = row
+
+	local maxBox = Instance.new("TextBox")
+	maxBox.Size = UDim2.new(0, 42, 0, 22)
+	maxBox.Position = UDim2.new(0, 56, 0, 7)
+	maxBox.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
+	maxBox.Text = tostring(data.max)
+	maxBox.TextColor3 = Color3.fromRGB(230, 230, 240)
+	maxBox.Font = Enum.Font.Code
+	maxBox.TextSize = 12
+	maxBox.Parent = row
+
+	local pctBox = Instance.new("TextBox")
+	pctBox.Size = UDim2.new(0, 42, 0, 22)
+	pctBox.Position = UDim2.new(0, 108, 0, 7)
+	pctBox.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
+	pctBox.Text = tostring(data.percent)
+	pctBox.TextColor3 = Color3.fromRGB(230, 230, 240)
+	pctBox.Font = Enum.Font.Code
+	pctBox.TextSize = 12
+	pctBox.Parent = row
+
+	local rem = Instance.new("TextButton")
+	rem.Size = UDim2.new(0, 22, 0, 22)
+	rem.Position = UDim2.new(1, -30, 0, 7)
+	rem.BackgroundColor3 = Color3.fromRGB(60, 25, 35)
+	rem.Text = "×"
+	rem.TextColor3 = Color3.fromRGB(255, 140, 140)
+	rem.Font = Enum.Font.GothamBold
+	rem.TextSize = 14
+	rem.Parent = row
+
+	local dataRow = {min = minBox, max = maxBox, pct = pctBox, frame = row}
+	table.insert(rows, dataRow)
+
+	rem.MouseButton1Click:Connect(function()
+		row:Destroy()
+		for i = #rows, 1, -1 do
+			if rows[i] == dataRow then
+				table.remove(rows, i)
+				break
+			end
+		end
+		list.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 8)
+		updateTotal()
+	end)
+
+	minBox:GetPropertyChangedSignal("Text"):Connect(updateTotal)
+	maxBox:GetPropertyChangedSignal("Text"):Connect(updateTotal)
+	pctBox:GetPropertyChangedSignal("Text"):Connect(updateTotal)
+
+	list.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 8)
+	updateTotal()
+end
+
+local cur = getgenv().AutoPlayerDelayRanges or {
+	{min = 0, max = 20, percent = 90},
+	{min = 21, max = 50, percent = 10}
+}
+
+for _, v in ipairs(cur) do
+	addRow(v)
+end
+
+add.MouseButton1Click:Connect(function()
+	addRow()
+end)
+
+apply.MouseButton1Click:Connect(function()
+	if updateTotal() \~= 100 then
+		total.Text = "MUST BE 100% !"
+		total.TextColor3 = Color3.fromRGB(255, 80, 80)
+		return
+	end
+
+	local new = {}
+	for _, r in ipairs(rows) do
+		local mn = tonumber(r.min.Text) or 0
+		local mx = tonumber(r.max.Text) or mn
+		local pc = tonumber(r.pct.Text) or 0
+		if mx < mn then mx = mn end
+		table.insert(new, {
+			min = math.floor(mn),
+			max = math.floor(mx),
+			percent = pc
+		})
+	end
+
+	getgenv().AutoPlayerDelayRanges = new
+	total.Text = "Applied ✓"
+	total.TextColor3 = Color3.fromRGB(140, 255, 160)
+end)
+
+close.MouseButton1Click:Connect(function()
+	panel.Visible = false
+end)
+
+btn.MouseButton1Click:Connect(function()
+	panel.Visible = not panel.Visible
+end)
+
+print("[Settings] Loaded")
